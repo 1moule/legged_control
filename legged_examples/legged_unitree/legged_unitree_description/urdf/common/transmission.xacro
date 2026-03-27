@@ -2,7 +2,7 @@
 
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-    <xacro:macro name="leg_transmission" params="name">
+    <xacro:macro name="leg_transmission" params="name wheel">
 
         <transmission name="${prefix}_HAA_tran">
             <type>transmission_interface/SimpleTransmission</type>
@@ -36,6 +36,19 @@
                 <mechanicalReduction>1</mechanicalReduction>
             </actuator>
         </transmission>
+
+        <!--        <xacro:if value="${wheel==True}">-->
+        <!--            <transmission name="${prefix}_foot_tran">-->
+        <!--                <type>transmission_interface/SimpleTransmission</type>-->
+        <!--                <joint name="${prefix}_foot_joint">-->
+        <!--                    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>-->
+        <!--                </joint>-->
+        <!--                <actuator name="${prefix}_foot_motor">-->
+        <!--                    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>-->
+        <!--                    <mechanicalReduction>1</mechanicalReduction>-->
+        <!--                </actuator>-->
+        <!--            </transmission>-->
+        <!--        </xacro:if>-->
 
     </xacro:macro>
 
