@@ -24,29 +24,33 @@ namespace legged {
 using namespace ocs2;
 using namespace legged_robot;
 
-class LeggedController : public controller_interface::MultiInterfaceController<HybridJointInterface, hardware_interface::ImuSensorInterface,
+class LeggedController : public controller_interface::MultiInterfaceController<HybridJointInterface,
+                                                                               hardware_interface::ImuSensorInterface,
                                                                                ContactSensorInterface> {
  public:
   LeggedController() = default;
   ~LeggedController() override;
-  bool init(hardware_interface::RobotHW* robot_hw, ros::NodeHandle& controller_nh) override;
-  void update(const ros::Time& time, const ros::Duration& period) override;
-  void starting(const ros::Time& time) override;
-  void stopping(const ros::Time& /*time*/) override { mpcRunning_ = false; }
+  bool init(hardware_interface::RobotHW *robot_hw, ros::NodeHandle &controller_nh) override;
+  void update(const ros::Time &time, const ros::Duration &period) override;
+  void starting(const ros::Time &time) override;
+  void stopping(const ros::Time & /*time*/) override { mpcRunning_ = false; }
 
  protected:
-  virtual void updateStateEstimation(const ros::Time& time, const ros::Duration& period);
+  virtual void updateStateEstimation(const ros::Time &time, const ros::Duration &period);
 
-  virtual void setupLeggedInterface(const std::string& taskFile, const std::string& urdfFile, const std::string& referenceFile,
+  virtual void setupLeggedInterface(const std::string &taskFile,
+                                    const std::string &urdfFile,
+                                    const std::string &referenceFile,
                                     bool verbose);
   virtual void setupMpc();
   virtual void setupMrt();
-  virtual void setupStateEstimate(const std::string& taskFile, bool verbose);
+  virtual void setupStateEstimate(const std::string &taskFile, bool verbose);
 
   // Interface
   std::shared_ptr<LeggedInterface> leggedInterface_;
   std::shared_ptr<PinocchioEndEffectorKinematics> eeKinematicsPtr_;
   std::vector<HybridJointHandle> hybridJointHandles_;
+  std::vector<HybridJointHandle> wheelJointHandles_;
   std::vector<ContactSensorHandle> contactHandles_;
   hardware_interface::ImuSensorHandle imuSensorHandle_;
 
@@ -70,15 +74,26 @@ class LeggedController : public controller_interface::MultiInterfaceController<H
   ros::Publisher observationPublisher_;
 
  private:
+  void normal(const ros::Time &time, const ros::Duration &period);
+  void standUp(const ros::Time &time, const ros::Duration &period);
+  enum RobotMode {
+    NORMAL,
+    STAND_UP,
+  };
+  int robotMode_ = RobotMode::STAND_UP;
+  bool stateChange_ = false;
+  ros::Subscriber fsmCmdSub_;
+
   std::thread mpcThread_;
   std::atomic_bool controllerRunning_{}, mpcRunning_{};
   benchmark::RepeatedTimer mpcTimer_;
   benchmark::RepeatedTimer wbcTimer_;
+
 };
 
 class LeggedCheaterController : public LeggedController {
  protected:
-  void setupStateEstimate(const std::string& taskFile, bool verbose) override;
+  void setupStateEstimate(const std::string &taskFile, bool verbose) override;
 };
 
 }  // namespace legged

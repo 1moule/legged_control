@@ -145,7 +145,7 @@
         </link>
 
         <xacro:if value="${(wheel == True)}">
-            <joint name="${prefix}_foot_joint" type="fixed">
+            <joint name="${prefix}_foot_joint" type="revolute">
                 <xacro:if value="${mirror_dae == True}">
                     <origin rpy="0 0 0" xyz="0 0 ${-(calf_length)}"/>
                 </xacro:if>
@@ -174,9 +174,14 @@
                     </material>
                 </visual>
                 <collision>
-                    <origin xyz="0 0 0" rpy="0 0 0"/>
+                    <xacro:if value="${mirror_dae == True}">
+                        <origin rpy="${pi/2} 0 0" xyz="0 0.045 0"/>
+                    </xacro:if>
+                    <xacro:if value="${mirror_dae == False}">
+                        <origin rpy="${pi/2} 0 0" xyz="0 -0.045 0"/>
+                    </xacro:if>
                     <geometry>
-                        <mesh filename="${mesh_path}/${prefix}_foot.dae"/>
+                        <cylinder length="0.02" radius="0.1125"/>
                     </geometry>
                 </collision>
             </link>
@@ -215,14 +220,6 @@
             <gazebo reference="${prefix}_foot_fixed">
                 <disableFixedJointLumping>true</disableFixedJointLumping>
             </gazebo>
-            <gazebo reference="${prefix}_FOOT">
-                <mu1>0.6</mu1>
-                <mu2>0.6</mu2>
-                <self_collide>1</self_collide>
-                <material>Gazebo/DarkGrey</material>
-                <kp value="1000000.0"/>
-                <kd value="100.0"/>
-            </gazebo>
         </xacro:if>
 
         <gazebo reference="${prefix}_hip">
@@ -242,6 +239,14 @@
             <mu1>0.6</mu1>
             <mu2>0.6</mu2>
             <self_collide>1</self_collide>
+        </gazebo>
+        <gazebo reference="${prefix}_FOOT">
+            <mu1>0.6</mu1>
+            <mu2>0.6</mu2>
+            <self_collide>1</self_collide>
+            <material>Gazebo/DarkGrey</material>
+            <kp value="1000000.0"/>
+            <kd value="100.0"/>
         </gazebo>
 
         <xacro:leg_transmission name="${prefix}" wheel="${wheel}"/>

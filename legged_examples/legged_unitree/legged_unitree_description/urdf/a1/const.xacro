@@ -101,5 +101,6 @@
 
     <!-- foot -->
     <xacro:property name="foot_mass" value="0.06"/>
-
+    <xacro:property name="wheel" value="False"/>
+    
 </robot>

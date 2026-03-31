@@ -40,22 +40,22 @@
     <xacro:IMU connected_to="base" imu_name="base_imu" xyz="0. 0. 0." rpy="0. 0. 0."/>
 
 
-    <xacro:leg prefix="LF" mesh_path="${mesh_path}" mirror="1" mirror_dae="True" wheel="True" front_hind="1"
+    <xacro:leg prefix="LF" mesh_path="${mesh_path}" mirror="1" mirror_dae="True" wheel="${wheel}" front_hind="1"
                front_hind_dae="True">
         <origin rpy="0 0 0" xyz="${leg_offset_x} ${leg_offset_y} 0"/>
     </xacro:leg>
 
-    <xacro:leg prefix="LH" mesh_path="${mesh_path}" mirror="1" mirror_dae="True" wheel="True" front_hind="-1"
+    <xacro:leg prefix="LH" mesh_path="${mesh_path}" mirror="1" mirror_dae="True" wheel="${wheel}" front_hind="-1"
                front_hind_dae="False">
         <origin rpy="0 0 0" xyz="${-leg_offset_x} ${leg_offset_y} 0"/>
     </xacro:leg>
 
-    <xacro:leg prefix="RF" mesh_path="${mesh_path}" mirror="-1" mirror_dae="False" wheel="True" front_hind="1"
+    <xacro:leg prefix="RF" mesh_path="${mesh_path}" mirror="-1" mirror_dae="False" wheel="${wheel}" front_hind="1"
                front_hind_dae="True">
         <origin rpy="0 0 0" xyz="${leg_offset_x} ${-leg_offset_y} 0"/>
     </xacro:leg>
 
-    <xacro:leg prefix="RH" mesh_path="${mesh_path}" mirror="-1" mirror_dae="False" wheel="True" front_hind="-1"
+    <xacro:leg prefix="RH" mesh_path="${mesh_path}" mirror="-1" mirror_dae="False" wheel="${wheel}" front_hind="-1"
                front_hind_dae="False">
         <origin rpy="0 0 0" xyz="${-leg_offset_x} ${-leg_offset_y} 0"/>
     </xacro:leg>
