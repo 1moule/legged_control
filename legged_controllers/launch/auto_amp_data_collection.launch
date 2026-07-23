@@ -10,6 +10,7 @@
     <arg name="gait" default="trot"/>
     <arg name="static_gait" default="stance"/>
     <arg name="pre_record_trot_duration" default="1.0"/>
+    <arg name="gait_publish_duration" default="1.0"/>
     <arg name="manifest" default="$(arg amp_log_dir)/collection_manifest.json"/>
 
     <include file="$(find legged_controllers)/launch/load_controller.launch">
@@ -27,6 +28,7 @@
                 --gait $(arg gait)
                 --static-gait $(arg static_gait)
                 --pre-record-trot-duration $(arg pre_record_trot_duration)
+                --gait-publish-duration $(arg gait_publish_duration)
                 --amp-log-dir $(arg amp_log_dir)
                 --amp-log-prefix $(arg amp_log_prefix)
                 --manifest $(arg manifest)"/>

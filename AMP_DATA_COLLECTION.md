@@ -41,11 +41,12 @@ roslaunch legged_controllers auto_amp_data_collection.launch \
 
 1. 加载 controller，并启用 AMP logger。
 2. 自动 switch 启动 `controllers/legged_controller`。
-3. 先进入 `trot` 1 秒。
-4. 再进入 `stance`，默认稳定 3 秒。
-5. 发布 `/amp/enable_logging true` 开始录制。
-6. 自动发送 `/cmd_vel` 速度序列。
-7. 结束后发布 `/amp/enable_logging false`，并发送零速度。
+3. 先发布 `trot` gait，并在确认 gait 话题已有控制器订阅者后持续发布一小段时间。
+4. 保持 `trot` 1 秒，避免 `stance` 太快覆盖还没被 MPC 消费的 gait 命令。
+5. 再进入 `stance`，默认稳定 3 秒。
+6. 发布 `/amp/enable_logging true` 开始录制。
+7. 自动发送 `/cmd_vel` 速度序列。
+8. 结束后发布 `/amp/enable_logging false`，并发送零速度。
 
 常用参数：
 
@@ -55,6 +56,7 @@ roslaunch legged_controllers auto_amp_data_collection.launch \
   gait:=trot \
   static_gait:=stance \
   pre_record_trot_duration:=1.0 \
+  gait_publish_duration:=1.0 \
   amp_log_dir:=/tmp/amp_data \
   amp_log_prefix:=motion
 ```
@@ -194,5 +196,7 @@ python legged_gym/scripts/train.py --task a1_ame --headless
 - 自动采集 launch 不启动 Gazebo，只负责加载 controller 和运行采集脚本。
 - 如果使用 `rosrun auto_amp_data_collector.py`，需要先用 `enable_amp_logging:=true` 启动 `load_controller.launch`。
 - 自动采集 launch 会设置 `start_gait_keyboard:=false`，避免交互式 gait 命令节点和自动脚本同时发布 gait。
+- 自动脚本现在会等待 `legged_robot_mpc_mode_schedule` 有订阅者；如果没有连到 `GaitReceiver`，会直接报错而不是继续录制错误数据。
+- 运行时终端应看到类似 `Published gait 'trot' on /legged_robot_mpc_mode_schedule to 1 subscriber(s)` 的日志；控制器终端也应看到 `[GaitReceiver]: Setting new gait after time ...`。
 - 如果机器人在 `1.0 m/s` 平移或 `1.0 rad/s` 旋转下不稳定，先用 `--segment` 自定义低速片段验证。
 - 转换脚本不依赖固定的 LeggedGym-Ex 路径，适合在其他系统上运行；用 `--output_dir` 指定导出目录即可。

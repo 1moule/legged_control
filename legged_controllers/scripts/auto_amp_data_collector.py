@@ -226,8 +226,8 @@ class AutoAmpCollector:
     def __init__(self, args):
         self.args = args
         self.robot_name = args.robot_name
-        self.gait_topic = "/" + self.robot_name + "_mpc_mode_schedule"
-        self.observation_topic = "/" + self.robot_name + "_mpc_observation"
+        self.gait_topic = self.robot_name + "_mpc_mode_schedule"
+        self.observation_topic = self.robot_name + "_mpc_observation"
         self.last_observation_wall_time = 0.0
 
         self.command = RampCommandPublisher(args.cmd_rate, args.linear_ramp_rate, args.yaw_ramp_rate)
@@ -260,8 +260,9 @@ class AutoAmpCollector:
                 if required:
                     raise RuntimeError(message)
                 rospy.logwarn(message)
-                return
+                return 0
             rate.sleep()
+        return publisher.get_num_connections()
 
     def wait_for_recent_observation(self, timeout, max_age=1.0):
         start = time.monotonic()
@@ -293,8 +294,8 @@ class AutoAmpCollector:
         msg.eventTimes = event_times
         msg.modeSequence = modes
         self.command.set_target(0.0, 0.0, 0.0, reset=True)
-        self.wait_for_connections(self.gait_pub, self.gait_topic, self.args.connection_timeout)
-        publish_duration = self.args.gait_publish_duration if duration is None else duration
+        connections = self.wait_for_connections(self.gait_pub, self.gait_topic, self.args.connection_timeout, required=True)
+        publish_duration = self.args.gait_publish_duration if duration is None else max(duration, self.args.gait_publish_duration)
         end_time = time.monotonic() + publish_duration
         rate = rospy.Rate(1.0 / self.args.gait_publish_period)
         while not rospy.is_shutdown() and time.monotonic() < end_time:
@@ -302,7 +303,14 @@ class AutoAmpCollector:
             rate.sleep()
         self.current_gait = gait_name
         self.gait_name_pub.publish(String(gait_name))
-        rospy.loginfo("Published gait '%s'", gait_name)
+        rospy.loginfo(
+            "Published gait '%s' on %s to %d subscriber(s), eventTimes=%s, modeSequence=%s",
+            gait_name,
+            rospy.resolve_name(self.gait_topic),
+            connections,
+            event_times,
+            modes,
+        )
 
     def gait_for_segment(self, vx, vy, wz):
         if abs(vx) <= self.args.static_velocity_epsilon and abs(vy) <= self.args.static_velocity_epsilon and abs(wz) <= self.args.static_velocity_epsilon:
@@ -412,9 +420,14 @@ class AutoAmpCollector:
             self.switch_on_controller()
             self.wait_for_recent_observation(timeout=self.args.init_timeout)
             if self.args.pre_record_trot_duration > 0.0:
-                rospy.loginfo("Pre-record warmup: gait=%s for %.1f s", self.args.gait, self.args.pre_record_trot_duration)
-                self.publish_gait(self.args.gait, duration=self.args.pre_record_trot_duration)
+                rospy.loginfo(
+                    "Pre-record warmup: publish gait=%s, then hold it for %.1f s",
+                    self.args.gait,
+                    self.args.pre_record_trot_duration,
+                )
+                self.publish_gait(self.args.gait)
                 self.wait_for_recent_observation(timeout=self.args.observation_timeout)
+                rospy.sleep(self.args.pre_record_trot_duration)
             rospy.loginfo("Pre-record settle: gait=%s for %.1f s", self.args.static_gait, self.args.post_init_stance)
             self.publish_gait(self.args.static_gait)
             rospy.sleep(self.args.post_init_stance)
