@@ -104,6 +104,8 @@ catkin build legged_unitree_hw
 
 ## Quick Start
 
+AMP 数据采集功能的使用方式见 [AMP_DATA_COLLECTION.md](AMP_DATA_COLLECTION.md)。
+
 1. Set your robot type as an environment variable: ROBOT_TYPE
 
 ```

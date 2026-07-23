@@ -73,6 +73,18 @@ bool LeggedController::init(hardware_interface::RobotHW* robot_hw, ros::NodeHand
   // Safety Checker
   safetyChecker_ = std::make_shared<SafetyChecker>(leggedInterface_->getCentroidalModelInfo());
 
+  controller_nh.getParam("/enable_amp_logging", enableAmpLogging_);
+  if (enableAmpLogging_) {
+    AmpDataLogger::Config ampConfig;
+    controller_nh.getParam("/amp_log_dir", ampConfig.logDir);
+    controller_nh.getParam("/amp_log_prefix", ampConfig.logPrefix);
+    controller_nh.getParam("/amp_log_to_file", ampConfig.logToFile);
+    controller_nh.getParam("/amp_log_to_ros", ampConfig.logToRos);
+    controller_nh.getParam("/amp_log_frequency", ampConfig.logFrequency);
+    ampConfig.numJoints = leggedInterface_->getCentroidalModelInfo().actuatedDofNum;
+    ampDataLogger_ = std::make_unique<AmpDataLogger>(ampConfig, nh);
+  }
+
   return true;
 }
 
@@ -135,12 +147,24 @@ void LeggedController::update(const ros::Time& time, const ros::Duration& period
     hybridJointHandles_[j].setCommand(posDes(j), velDes(j), 0, 3, torque(j));
   }
 
+  if (enableAmpLogging_ && ampDataLogger_) {
+    ampDataLogger_->log(currentObservation_.time, optimizedState, optimizedInput, x, measuredRbdState_, plannedMode,
+                        leggedInterface_->getCentroidalModelInfo());
+  }
+
   // Visualization
   robotVisualizer_->update(currentObservation_, mpcMrtInterface_->getPolicy(), mpcMrtInterface_->getCommand());
   selfCollisionVisualization_->update(currentObservation_);
 
   // Publish the observation. Only needed for the command interface
   observationPublisher_.publish(ros_msg_conversions::createObservationMsg(currentObservation_));
+}
+
+void LeggedController::stopping(const ros::Time& /*time*/) {
+  mpcRunning_ = false;
+  if (ampDataLogger_) {
+    ampDataLogger_->stopLogging();
+  }
 }
 
 void LeggedController::updateStateEstimation(const ros::Time& time, const ros::Duration& period) {
@@ -186,6 +210,9 @@ LeggedController::~LeggedController() {
   controllerRunning_ = false;
   if (mpcThread_.joinable()) {
     mpcThread_.join();
+  }
+  if (ampDataLogger_) {
+    ampDataLogger_->stopLogging();
   }
   std::cerr << "########################################################################";
   std::cerr << "\n### MPC Benchmarking";

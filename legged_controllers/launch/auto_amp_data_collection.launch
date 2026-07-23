@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+
+<launch>
+    <arg name="robot_type" default="$(env ROBOT_TYPE)" doc="Robot type: [a1, aliengo, go1, laikago]"/>
+    <arg name="cheater" default="false"/>
+    <arg name="amp_log_dir" default="$(find legged_controllers)/../../amp_data"/>
+    <arg name="amp_log_prefix" default="motion"/>
+    <arg name="amp_log_frequency" default="50.0"/>
+    <arg name="robot_name" default="legged_robot"/>
+    <arg name="gait" default="trot"/>
+    <arg name="static_gait" default="stance"/>
+    <arg name="pre_record_trot_duration" default="1.0"/>
+    <arg name="manifest" default="$(arg amp_log_dir)/collection_manifest.json"/>
+
+    <include file="$(find legged_controllers)/launch/load_controller.launch">
+        <arg name="robot_type" value="$(arg robot_type)"/>
+        <arg name="cheater" value="$(arg cheater)"/>
+        <arg name="enable_amp_logging" value="true"/>
+        <arg name="amp_log_dir" value="$(arg amp_log_dir)"/>
+        <arg name="amp_log_prefix" value="$(arg amp_log_prefix)"/>
+        <arg name="amp_log_frequency" value="$(arg amp_log_frequency)"/>
+        <arg name="start_gait_keyboard" value="false"/>
+    </include>
+
+    <node pkg="legged_controllers" type="auto_amp_data_collector.py" name="auto_amp_data_collector" output="screen"
+          args="--robot-name $(arg robot_name)
+                --gait $(arg gait)
+                --static-gait $(arg static_gait)
+                --pre-record-trot-duration $(arg pre_record_trot_duration)
+                --amp-log-dir $(arg amp_log_dir)
+                --amp-log-prefix $(arg amp_log_prefix)
+                --manifest $(arg manifest)"/>
+</launch>

@@ -6,7 +6,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED
         COMPONENTS
+        controller_manager_msgs
+        geometry_msgs
+        ocs2_msgs
+        rospy
         roscpp
+        std_msgs
         legged_common
         legged_interface
         legged_wbc
@@ -26,7 +31,12 @@ catkin_package(
         LIBRARIES
         ${PROJECT_NAME}
         CATKIN_DEPENDS
+        controller_manager_msgs
+        geometry_msgs
+        ocs2_msgs
+        rospy
         roscpp
+        std_msgs
         legged_common
         legged_interface
         legged_wbc
@@ -54,6 +64,7 @@ link_directories(
 ## Declare a cpp library
 add_library(${PROJECT_NAME}
         src/LeggedController.cpp
+        src/AmpDataLogger.cpp
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -112,4 +123,9 @@ install(DIRECTORY include/${PROJECT_NAME}/
 # Install plugins
 install(FILES legged_controllers_plugins.xml
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+        )
+
+catkin_install_python(PROGRAMS
+        scripts/auto_amp_data_collector.py
+        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
         )

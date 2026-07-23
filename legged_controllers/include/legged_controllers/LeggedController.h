@@ -13,10 +13,13 @@
 #include <ocs2_legged_robot_ros/visualization/LeggedRobotVisualizer.h>
 #include <ocs2_mpc/MPC_MRT_Interface.h>
 
+#include <memory>
+
 #include <legged_estimation/StateEstimateBase.h>
 #include <legged_interface/LeggedInterface.h>
 #include <legged_wbc/WbcBase.h>
 
+#include "legged_controllers/AmpDataLogger.h"
 #include "legged_controllers/SafetyChecker.h"
 #include "legged_controllers/visualization/LeggedSelfCollisionVisualization.h"
 
@@ -32,7 +35,7 @@ class LeggedController : public controller_interface::MultiInterfaceController<H
   bool init(hardware_interface::RobotHW* robot_hw, ros::NodeHandle& controller_nh) override;
   void update(const ros::Time& time, const ros::Duration& period) override;
   void starting(const ros::Time& time) override;
-  void stopping(const ros::Time& /*time*/) override { mpcRunning_ = false; }
+  void stopping(const ros::Time& time) override;
 
  protected:
   virtual void updateStateEstimation(const ros::Time& time, const ros::Duration& period);
@@ -68,6 +71,8 @@ class LeggedController : public controller_interface::MultiInterfaceController<H
   std::shared_ptr<LeggedRobotVisualizer> robotVisualizer_;
   std::shared_ptr<LeggedSelfCollisionVisualization> selfCollisionVisualization_;
   ros::Publisher observationPublisher_;
+  std::unique_ptr<AmpDataLogger> ampDataLogger_;
+  bool enableAmpLogging_{false};
 
  private:
   std::thread mpcThread_;

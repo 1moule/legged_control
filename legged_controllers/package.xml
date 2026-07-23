@@ -10,7 +10,12 @@
     <buildtool_depend>catkin</buildtool_depend>
 
     <build_depend>cmake_clang_tools</build_depend>
+    <depend>controller_manager_msgs</depend>
+    <depend>geometry_msgs</depend>
+    <depend>ocs2_msgs</depend>
+    <depend>rospy</depend>
     <depend>roscpp</depend>
+    <depend>std_msgs</depend>
     <depend>legged_common</depend>
     <depend>legged_interface</depend>
     <depend>legged_estimation</depend>
